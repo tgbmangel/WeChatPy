@@ -24,14 +24,16 @@ print(len(memberList))
 print(memberList)
 csvFile2 = open('csvFile2.csv','w', newline='') # 设置newline，否则两行之间会空一行
 writer = csv.writer(csvFile2)
-
+sexy={1:'男',
+      2:'女',
+      0:'其他'}
 for x,y in memberList.items():
     print(x,y)
     n=0
     if x=='MemberList':
         for z in y:
             # print(z['NickName'])
-            writer.writerow([z['UserName'],z['Sex'],z['Province'],z['City']])
+            writer.writerow([z['UserName'],sexy[z['Sex']] ,z['Province'],z['City']])
             n += 1
             for key,value in z.items():
 
