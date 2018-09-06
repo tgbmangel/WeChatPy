@@ -7,6 +7,7 @@
 import itchat
 from itchat.content import *
 import re
+from orange_databse import *
 
 orange_msg_type = {
     -1:'no',
@@ -57,9 +58,23 @@ def parse_msg_turn(msg_t):
             msg_toman += '{},'.format(value)
     return msg_toman
 
+def filter_name(name):
+    '''
+    数据库中按照名字过滤，如果已存在，则直接返回查询结果
+    :param name: 微信昵称
+    :return:
+    '''
+    _ModifyDt = session.query(Mybase).filter_by(name=name).first()
+    return _ModifyDt
+
 def unicode_nickname(input_string):
     '''
-    写文件或者存数据库时，表情无法存进去，此函数处理
+    微信的昵称或者备注名，有时候带有一些表情，写文件或者存数据库时会报错，此函数处理
+    不记得处理的数据原型了。但是函数应该可以用（忘记当时实现过程很尴尬）
+    如：数据原型为：\\U0008928\\02992\\0923
+        那么处理过程取出U0008928 、02992、0923
+        去掉U000开头的，然后将正常的拼回去组成一个string
+        再通过encode('utf-8').decode('unicode_escape') 处理成正常的utf8
     '''
     strrr=ascii(input_string)
     b=''
@@ -92,6 +107,8 @@ def text_reply(msg):
         global MSG_TURN
         try:
             msg_nick_name=unicode_nickname(msg['User']['NickName'])
+            if not filter_name(msg_nick_name):
+                add_data(name_string=msg_nick_name)
             if msg_nick_name in MSG_TURN.keys():
                 pass
             else:
@@ -104,16 +121,19 @@ def text_reply(msg):
                 MSG_TURN[msg_nick_name]['dingdan']=wechat_content
                 # print(msg_turn)
                 msg.user.send('已收到:{}'.format(msg.text))
+                filter_name(msg_nick_name).order_num = msg.text
                 msg.user.send('亲，把您的收件人名、地址和联系电话发给我哦。格式：【配送信息+收件人姓名，地址，联系电话】')
             elif msg_orange==3:
                 MSG_TURN[msg_nick_name]['dizhi']=wechat_content
                 # print(msg_turn)
                 msg.user.send('亲，已收到:{} \n---\n谢谢，稍后会联系您。[愉快]'.format(msg.text))
+                filter_name(msg_nick_name).address = msg.text
                 send_msg_to_man(parse_msg_turn(MSG_TURN))
             elif msg_orange==4:
                 msg.user.send(parse_msg_turn(MSG_TURN))
             elif msg_orange==-1:
                 msg.user.send('谢谢关注，买橘子请发：“我要买橘子”。。\n{}'.format(orange_info))
+            session.commit()
         except Exception as e:
             print('异常打印：{}:{}'.format(e,msg))
 if __name__=='__main__':
