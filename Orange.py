@@ -8,6 +8,8 @@ import itchat
 from itchat.content import *
 import re
 from orange_databse import *
+from orange_log import logger
+import schedule
 
 orange_msg_type = {
     -1:'no',
@@ -115,6 +117,7 @@ def text_reply(msg):
                 MSG_TURN[msg_nick_name]={}
             wechat_content = msg.text
             msg_orange=get_content(wechat_content)
+            logger.info('{}:{}'.format(msg_nick_name, msg.text))
             if msg_orange==1:
                 msg.user.send('亲，请说明要多少，目前1件10斤，50元，发送格式：【我要订+几件】')
             elif msg_orange==2:

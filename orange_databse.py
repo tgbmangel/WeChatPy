@@ -19,7 +19,7 @@ class Mybase(Base):
 
     __tablename__ ='orange_order'
     #字段，属性
-    id=Column(Integer,primary_key=True)
+    id=Column(Integer)
     name=Column(String(255),primary_key=True)
     order_num=Column(String(10))
     address=Column(String(255))
@@ -52,9 +52,9 @@ def update_data(filter_column,filter_data,update_column,update_data):
     session.commit()
 
 if __name__=="__main__":
-    # delDb()
-    # CreatDb()
-    # add_data(name_string='rr')
-    querydt = session.query(Mybase).filter()
-    for i in querydt:
-        print(i.name)
+    delDb()
+    CreatDb()
+    # # add_data(name_string='rr')
+    # querydt = session.query(Mybase).filter()
+    # for i in querydt:
+    #     print(i.name)

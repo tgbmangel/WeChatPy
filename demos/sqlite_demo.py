@@ -17,9 +17,10 @@ Base=declarative_base()
 
 class Mybase(Base):
     #表名:
-    __tablename__ ='mycars'
+
+    __tablename__ ='order'
     #字段，属性
-    myid=Column(String(50), primary_key=True)
+    myid=Column(String(255), primary_key=True)
     price=Column(String(50))
 
 def CreatDb():
