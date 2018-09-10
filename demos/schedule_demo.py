@@ -8,6 +8,7 @@
 import schedule
 import itchat
 import time
+import threading
 
 def get_chatroom_username(room_name):
     try:
@@ -16,13 +17,23 @@ def get_chatroom_username(room_name):
     except Exception as e:
         return
 
-
 def send_message_chatroom(message):
+    print('send_message_chatroom')
     itchat.send(message,toUserName=get_chatroom_username('经济研讨'))
 
-itchat.auto_login(hotReload=True)
-schedule.every().day.at("15:35").do(send_message_chatroom, "哈哈",)
-while True:
-    print('itchat:{}'.format(itchat.check_login()))
-    schedule.run_pending()
-    time.sleep(10)
+def schedule_send():
+    while True:
+        schedule.run_pending()
+        print('schedule_send...')
+        time.sleep(1)
+
+@itchat.msg_register(itchat.content.TEXT)
+def print_msg(msg):
+    print(msg.text)
+if __name__=='__main__':
+    itchat.auto_login(hotReload=True)
+
+    schedule.every().day.at("17:07").do(send_message_chatroom, "哈哈")
+    t=threading.Thread(target=schedule_send)
+    t.start()
+    itchat.run()
