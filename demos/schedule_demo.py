@@ -29,6 +29,7 @@ def send_message_chatroom(message):
     itchat.send('还没登记的同学快扫码登记哦！已登记的同学找刘乐领奖品哦。[害羞][愉快]',toUserName=get_chatroom_username(chat_room))
 
 def schedule_send():
+    print('start time:{}'.format(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime())))
     while True:
         schedule.run_pending()
         print('schedule_send...')
