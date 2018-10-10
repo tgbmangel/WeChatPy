@@ -46,6 +46,15 @@ def add_data(name_string,order_num_string='',address_string='',accept_money_stri
     session.add(_dt)
     session.commit()
 
+def filter_name(name):
+    '''
+    数据库中按照名字过滤，如果已存在，则直接返回查询结果
+    :param name: 微信昵称
+    :return:
+    '''
+    _ModifyDt = session.query(Mybase).filter_by(name=name).first()
+    return _ModifyDt
+
 def update_data(filter_column,filter_data,update_column,update_data):
     _ModifyDt = session.query(Mybase).filter_by(filter_column=filter_data).first()
     _ModifyDt.update_column = update_data

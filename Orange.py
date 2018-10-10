@@ -10,6 +10,7 @@ import re
 from orange_databse import *
 from orange_log import logger
 import schedule
+import time
 
 orange_msg_type = {
     -1:'no',
@@ -19,7 +20,7 @@ orange_msg_type = {
     4:'查询'
 }
 MSG_TURN={}
-orange_info='正宗石门柑橘，自家种的，一件10斤50元包邮。目前是特早熟，现摘现卖。'
+orange_info='正宗石门柑橘，自家种的新鲜桔子，一件10斤50元包邮。'
 main_wechat_name='西边有片云'
 
 def get_content(content):
@@ -53,21 +54,13 @@ def send_msg_to_man(message):
 def parse_msg_turn(msg_t):
     msg_toman = ''
     for x,y in msg_t.items():
-        msg_toman += '\n微信：{}，'.format(x)
+        msg_toman += '已收到订单：\n微信：{},'.format(x)
         for key,value in y.items():
             # msg_toman += key
             print(key,value)
             msg_toman += '{},'.format(value)
+        msg_toman+='↓\n'
     return msg_toman
-
-def filter_name(name):
-    '''
-    数据库中按照名字过滤，如果已存在，则直接返回查询结果
-    :param name: 微信昵称
-    :return:
-    '''
-    _ModifyDt = session.query(Mybase).filter_by(name=name).first()
-    return _ModifyDt
 
 def unicode_nickname(input_string):
     '''
@@ -130,6 +123,7 @@ def text_reply(msg):
                 MSG_TURN[msg_nick_name]['dizhi']=wechat_content
                 # print(msg_turn)
                 msg.user.send('亲，已收到:{} \n---\n谢谢，稍后会联系您。[愉快]'.format(msg.text))
+                filter_name(msg_nick_name).accept_money = time.strftime("%Y-%m-%d",time.localtime())
                 filter_name(msg_nick_name).address = msg.text
                 send_msg_to_man(parse_msg_turn(MSG_TURN))
             elif msg_orange==4:
@@ -139,6 +133,7 @@ def text_reply(msg):
             session.commit()
         except Exception as e:
             print('异常打印：{}:{}'.format(e,msg))
+            logger.error('异常打印：{}:{}'.format(e,msg))
 if __name__=='__main__':
     itchat.auto_login(True)
     itchat.run()
