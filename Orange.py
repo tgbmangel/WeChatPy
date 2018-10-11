@@ -30,12 +30,17 @@ def get_content(content):
     dingdan_compile=re.compile(r"^我要订(.*)")
     dizhi_compile=re.compile(r"^配送信息(.*)")
     chaxun=re.compile(r"^查询订单(.*)")
+    chaxun_not=re.compile(r"^查询未发订单(.*)")
+    dingdanjilu=re.compile(r"^-(.*)")
+
 
     #返回有一个列表
     a=org_compile.findall(string_c)
     b=dingdan_compile.findall(string_c)
     c=dizhi_compile.findall(string_c)
     d=chaxun.findall(string_c)
+    e=dingdanjilu.findall(string_c)
+    f=chaxun_not.findall(string_c)
     if a:
         return 1
     elif b:
@@ -44,6 +49,10 @@ def get_content(content):
         return 3
     elif d:
         return 4
+    elif e:
+        return 5
+    elif f:
+        return 6
     else:
         return -1
 
@@ -88,52 +97,79 @@ def unicode_nickname(input_string):
     else:
         return input_string
 
-@itchat.msg_register(FRIENDS)
-def add_friend(msg):
-    msg.user.verify()
-    print('{}添加成功'.format(msg.user))
-    msg.user.send('亲！您好！发送："我要买橘子"，将有客服为您转接！\n{}'.format(orange_info))
-
-@itchat.msg_register([TEXT])
-def text_reply(msg):
+def orange_replay(chat_msg):
     # print(msg['MsgType'])
-    if msg.text:
+    if chat_msg.text:
         # print(msg)
         global MSG_TURN
         try:
-            msg_nick_name=unicode_nickname(msg['User']['NickName'])
+            msg_nick_name = unicode_nickname(chat_msg['User']['NickName'])
             if not filter_name(msg_nick_name):
                 add_data(name_string=msg_nick_name)
             if msg_nick_name in MSG_TURN.keys():
                 pass
             else:
-                MSG_TURN[msg_nick_name]={}
-            wechat_content = msg.text
-            msg_orange=get_content(wechat_content)
-            logger.info('{}:{}'.format(msg_nick_name, msg.text))
-            if msg_orange==1:
-                msg.user.send('亲，请说明要多少，目前1件10斤，50元，发送格式：【我要订+几件】')
-            elif msg_orange==2:
-                MSG_TURN[msg_nick_name]['dingdan']=wechat_content
+                MSG_TURN[msg_nick_name] = {}
+            wechat_content = chat_msg.text
+            msg_orange = get_content(wechat_content)
+            logger.info('{}:{}'.format(msg_nick_name, chat_msg.text))
+            if msg_orange == 1:
+                chat_msg.user.send('亲，请说明要多少，目前1件10斤，50元，发送格式：\n【我要订 几件】')
+            elif msg_orange == 2:
+                MSG_TURN[msg_nick_name]['dingdan'] = wechat_content
                 # print(msg_turn)
-                msg.user.send('已收到:{}'.format(msg.text))
-                filter_name(msg_nick_name).order_num = msg.text
-                msg.user.send('亲，把您的收件人名、地址和联系电话发给我哦。格式：【配送信息+收件人姓名，地址，联系电话】')
-            elif msg_orange==3:
-                MSG_TURN[msg_nick_name]['dizhi']=wechat_content
+                chat_msg.user.send('已收到:{}'.format(chat_msg.text))
+                filter_name(msg_nick_name).order_num = chat_msg.text
+                time.sleep(0.5)
+                chat_msg.user.send('亲，把您的收件人名、地址和联系电话发给我哦。格式：\n【配送信息 收件人姓名，地址，联系电话】')
+            elif msg_orange == 3:
+                MSG_TURN[msg_nick_name]['dizhi'] = wechat_content
                 # print(msg_turn)
-                msg.user.send('亲，已收到:{} \n---\n谢谢，稍后会联系您。[愉快]'.format(msg.text))
-                filter_name(msg_nick_name).accept_money = time.strftime("%Y-%m-%d",time.localtime())
-                filter_name(msg_nick_name).address = msg.text
+                chat_msg.user.send('亲，已收到:{} \n----\n谢谢，稍后会联系您。[愉快]'.format(chat_msg.text))
+                filter_name(msg_nick_name).accept_money = time.strftime("%Y-%m-%d", time.localtime())
+                filter_name(msg_nick_name).address = chat_msg.text
                 send_msg_to_man(parse_msg_turn(MSG_TURN))
-            elif msg_orange==4:
-                msg.user.send(parse_msg_turn(MSG_TURN))
-            elif msg_orange==-1:
-                msg.user.send('谢谢关注，买橘子请发：“我要买橘子”。。\n{}'.format(orange_info))
+            elif msg_orange == 4:
+                chat_msg.user.send(query_all())
+            elif msg_orange == 6:
+                chat_msg.user.send(query_not_send())
+            elif msg_orange==5:
+                order_msg=chat_msg.text[1:]
+                print(order_msg)
+                chat_msg.user.send(f'已收到:{order_msg}')
+                try:
+                    order_name,*order_msgs,order_num,order_beizhu=order_msg.split()
+                    order_address='#'.join(x for x in list(order_msgs))
+                    order_time=time.strftime("%Y-%m-%d", time.localtime())
+                    print(f'添加数据：name_string={order_name},order_num_string={order_num},address_string={order_address},accept_money_string={order_time},info_string={order_beizhu})')
+                    logger.info(f'添加数据：name_string={order_name},order_num_string={order_num},address_string={order_address},accept_money_string={order_time},info_string={order_beizhu}')
+                    add_data(name_string=order_name,order_num_string=order_num,address_string=order_address,accept_money_string=order_time,info_string=order_beizhu)
+                    chat_msg.user.send('数据添加成功。')
+                except Exception as e:
+                    logger.error(e)
+                    chat_msg.user.send(e)
+            elif msg_orange == -1:
+                chat_msg.user.send('谢谢关注，买橘子请发：【我要买橘子】。。\n{}'.format(orange_info))
             session.commit()
         except Exception as e:
-            print('异常打印：{}:{}'.format(e,msg))
-            logger.error('异常打印：{}:{}'.format(e,msg))
+            print('异常打印：{}:{}'.format(e, chat_msg))
+            logger.error('异常打印：{}:{}'.format(e, chat_msg))
+
+@itchat.msg_register(FRIENDS)
+def add_friend(msg):
+    msg.user.verify()
+    print('{}添加成功'.format(msg.user))
+    msg.user.send('亲！您好！发送：【我要买橘子】，将有客服为您转接！\n{}'.format(orange_info))
+
+@itchat.msg_register([TEXT])
+def text_reply(msg):
+    orange_replay(msg)
+
+@itchat.msg_register(TEXT,isGroupChat=True)
+def text_group_chat(msg):
+    logger.info(msg['MsgType'])
+    logger.info(msg.content)
+
 if __name__=='__main__':
     itchat.auto_login(True)
     itchat.run()

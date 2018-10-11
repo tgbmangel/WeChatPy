@@ -19,12 +19,14 @@ class Mybase(Base):
 
     __tablename__ ='orange_order'
     #字段，属性
-    id=Column(Integer)
-    name=Column(String(255),primary_key=True)
+    id=Column(Integer,primary_key=True)
+    name=Column(String(255))
     order_num=Column(String(10))
     address=Column(String(255))
     accept_money=Column(String(10))
     if_send=Column(String(10))
+    info=Column(String(100))
+
 
 
 
@@ -35,20 +37,42 @@ def delDb():
     #删除表
     Base.metadata.drop_all(engine)
 
-def add_data(name_string,order_num_string='',address_string='',accept_money_string='',if_send_string=''):
+def add_data(name_string,order_num_string='',address_string='',accept_money_string='',if_send_string='',info_string=''):
     _dt=Mybase(
         name=name_string,
         order_num=order_num_string,
         address=address_string,
         accept_money=accept_money_string,
-        if_send=if_send_string
+        if_send=if_send_string,
+        info=info_string
     )
     session.add(_dt)
     session.commit()
 
+def query_all():
+    _all_datas = session.query(Mybase).all()
+    # print(_all_datas)
+    _all_datas_msg_string=''
+    for r in _all_datas:
+        if r.order_num:
+            row_string=f'{r.id},{r.name},{r.order_num},{r.address},\n下单时间:{r.accept_money},{"已发" if r.if_send else "未发"},\n备注:{r.info if r.info else "无"}\n------\n'
+            _all_datas_msg_string+=row_string
+    return _all_datas_msg_string
+
+def query_not_send():
+    _all_datas = session.query(Mybase).filter_by(if_send='').all()
+    _all_datas_msg_string=''
+    for r in _all_datas:
+        if r.order_num:
+            row_string=f'{r.id},{r.name},{r.order_num},{r.address},\n下单时间:{r.accept_money},{"已发" if r.if_send else "未发"},\n备注:{r.info if r.info else "无"}\n------\n'
+            _all_datas_msg_string+=row_string
+    return _all_datas_msg_string
+
 def filter_name(name):
     '''
     数据库中按照名字过滤，如果已存在，则直接返回查询结果
+    然后通过以下方式修改对应的数据：
+    filter_name(msg_nick_name).address = chat_msg.text
     :param name: 微信昵称
     :return:
     '''
@@ -61,9 +85,10 @@ def update_data(filter_column,filter_data,update_column,update_data):
     session.commit()
 
 if __name__=="__main__":
-    delDb()
-    CreatDb()
+    # delDb()
+    # CreatDb()
     # # add_data(name_string='rr')
     # querydt = session.query(Mybase).filter()
     # for i in querydt:
     #     print(i.name)
+    print(query_all())
