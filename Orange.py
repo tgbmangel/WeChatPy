@@ -20,7 +20,7 @@ orange_msg_type = {
     4:'查询'
 }
 MSG_TURN={}
-orange_info='正宗石门柑橘，自家种的新鲜桔子，一件10斤50元包邮。'
+orange_info='正宗石门柑橘，自家种的新鲜橘子，一件10斤50元包邮。'
 main_wechat_name='西边有片云'
 
 def get_content(content):
@@ -149,7 +149,7 @@ def orange_replay(chat_msg):
                     logger.error(e)
                     chat_msg.user.send(e)
             elif msg_orange == -1:
-                chat_msg.user.send('谢谢关注，买橘子请发：【我要买橘子】。。\n{}'.format(orange_info))
+                chat_msg.user.send('谢谢关注，{}买橘子请发：\n【我要买橘子】\n'.format(orange_info))
             session.commit()
         except Exception as e:
             print('异常打印：{}:{}'.format(e, chat_msg))
