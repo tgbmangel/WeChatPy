@@ -52,21 +52,35 @@ def add_data(name_string,order_num_string='',address_string='',accept_money_stri
 def query_all():
     _all_datas = session.query(Mybase).all()
     # print(_all_datas)
+    n=0
     _all_datas_msg_string=''
     for r in _all_datas:
         if r.order_num:
+            n+=1
             row_string=f'{r.id},{r.name},{r.order_num},{r.address},\n下单时间:{r.accept_money},{"已发" if r.if_send else "未发"},\n备注:{r.info if r.info else "无"}\n------\n'
             _all_datas_msg_string+=row_string
+    _all_datas_msg_string=_all_datas_msg_string+f'\n共 {n} 个订单'
     return _all_datas_msg_string
 
 def query_not_send():
     _all_datas = session.query(Mybase).filter_by(if_send='').all()
-    _all_datas_msg_string=''
+    _all_datas_msg_string=[]
     for r in _all_datas:
         if r.order_num:
-            row_string=f'{r.id},{r.name},{r.order_num},{r.address},\n下单时间:{r.accept_money},{"已发" if r.if_send else "未发"},\n备注:{r.info if r.info else "无"}\n------\n'
-            _all_datas_msg_string+=row_string
+            row_string=f'{r.id},{r.name},{r.order_num},{r.address},\n下单时间:{r.accept_money},{"已发" if r.if_send else "未发"},\n备注:{r.info if r.info else "无"}'
+            _all_datas_msg_string.append(row_string)
     return _all_datas_msg_string
+
+def filter_id(id):
+    '''
+    数据库中按照名字过滤，如果已存在，则直接返回查询结果
+    然后通过以下方式修改对应的数据：
+    filter_name(msg_nick_name).address = chat_msg.text
+    :param name: 微信昵称
+    :return:
+    '''
+    _ModifyDt = session.query(Mybase).filter_by(id=id).first()
+    return _ModifyDt
 
 def filter_name(name):
     '''
@@ -79,6 +93,9 @@ def filter_name(name):
     _ModifyDt = session.query(Mybase).filter_by(name=name).first()
     return _ModifyDt
 
+def delete_by_id(id):
+    session.query(Mybase).filter_by(id=id).delete()
+    session.commit()
 def update_data(filter_column,filter_data,update_column,update_data):
     _ModifyDt = session.query(Mybase).filter_by(filter_column=filter_data).first()
     _ModifyDt.update_column = update_data
@@ -91,4 +108,5 @@ if __name__=="__main__":
     # querydt = session.query(Mybase).filter()
     # for i in querydt:
     #     print(i.name)
-    print(query_all())
+    for x in query_not_send():
+        print(x)

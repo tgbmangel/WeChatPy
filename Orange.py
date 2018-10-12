@@ -32,7 +32,8 @@ def get_content(content):
     chaxun=re.compile(r"^查询订单(.*)")
     chaxun_not=re.compile(r"^查询未发订单(.*)")
     dingdanjilu=re.compile(r"^-(.*)")
-
+    xiugai=re.compile(r"^已发(.*)")
+    shanchu = re.compile(r"^删除(.*)")
 
     #返回有一个列表
     a=org_compile.findall(string_c)
@@ -41,6 +42,8 @@ def get_content(content):
     d=chaxun.findall(string_c)
     e=dingdanjilu.findall(string_c)
     f=chaxun_not.findall(string_c)
+    g=xiugai.findall(string_c)
+    h=shanchu.findall(string_c)
     if a:
         return 1
     elif b:
@@ -53,6 +56,10 @@ def get_content(content):
         return 5
     elif f:
         return 6
+    elif g:
+        return 7
+    elif h:
+        return 8
     else:
         return -1
 
@@ -130,10 +137,17 @@ def orange_replay(chat_msg):
                 filter_name(msg_nick_name).address = chat_msg.text
                 send_msg_to_man(parse_msg_turn(MSG_TURN))
             elif msg_orange == 4:
+                #查询所有：查询订单
                 chat_msg.user.send(query_all())
             elif msg_orange == 6:
-                chat_msg.user.send(query_not_send())
+                #查询未发订单：查询未发订单
+                all_not_send=query_not_send()
+                for x in all_not_send:
+                    time.sleep(1)
+                    chat_msg.user.send(x)
+                chat_msg.user.send(f'共有 {len(all_not_send)} 个订单未发')
             elif msg_orange==5:
+                #添加数据：-
                 order_msg=chat_msg.text[1:]
                 print(order_msg)
                 chat_msg.user.send(f'已收到:{order_msg}')
@@ -148,6 +162,20 @@ def orange_replay(chat_msg):
                 except Exception as e:
                     logger.error(e)
                     chat_msg.user.send(e)
+            elif msg_orange==7:
+                #修改数据：已发
+                send_id=chat_msg.text[2:]
+                print('收到id',send_id)
+                logger.info(f'修改：{int(send_id.strip())}')
+                filter_id(int(send_id.strip())).if_send = '1'
+                chat_msg.user.send(f'已修改{int(send_id.strip())}')
+            elif msg_orange==8:
+                #删除：删除
+                send_id = chat_msg.text[2:]
+                print('收到id', send_id)
+                logger.info(f'删除：{int(send_id.strip())}')
+                delete_by_id(int(send_id.strip()))
+                chat_msg.user.send(f'已删除{int(send_id.strip())}')
             elif msg_orange == -1:
                 chat_msg.user.send('谢谢关注，{}买橘子请发：\n【我要买橘子】\n'.format(orange_info))
             session.commit()
