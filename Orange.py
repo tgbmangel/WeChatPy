@@ -12,13 +12,6 @@ from orange_log import logger
 import schedule
 import time
 
-orange_msg_type = {
-    -1:'no',
-    1:'买橘子',
-    2:'重量',
-    3:'地址',
-    4:'查询'
-}
 MSG_TURN={}
 orange_info='正宗石门柑橘，自家种的新鲜橘子，一件10斤50元包邮。'
 main_wechat_name='西边有片云'
