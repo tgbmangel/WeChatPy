@@ -195,6 +195,9 @@ def text_group_chat(msg):
 if __name__=='__main__':
     global ora
     ora=itchat.new_instance()
-    ora.auto_login(True)
-    ora.run()
+    ora.auto_login(hotReload=True,statusStorageDir='ora.pkl')
+    try :
+        ora.run()
+    except Exception as e:
+        logger.info(e)
 
