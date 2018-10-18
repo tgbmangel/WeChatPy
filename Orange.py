@@ -12,6 +12,7 @@ from orange_log import logger
 import schedule
 import time
 
+
 MSG_TURN={}
 orange_info='正宗石门柑橘，自家种的新鲜橘子，一件10斤50元包邮。'
 main_wechat_name='西边有片云'
@@ -57,8 +58,8 @@ def get_content(content):
         return -1
 
 def send_msg_to_man(message):
-    a=itchat.search_friends(name=main_wechat_name)
-    itchat.send_msg(message,toUserName=a[0]['UserName'])
+    a=ora.search_friends(name=main_wechat_name)
+    ora.send_msg(message,toUserName=a[0]['UserName'])
 
 def parse_msg_turn(msg_t):
     msg_toman = ''
@@ -176,22 +177,24 @@ def orange_replay(chat_msg):
             print('异常打印：{}:{}'.format(e, chat_msg))
             logger.error('异常打印：{}:{}'.format(e, chat_msg))
 
-@itchat.msg_register(FRIENDS)
+@ora.msg_register(FRIENDS)
 def add_friend(msg):
     msg.user.verify()
     print('{}添加成功'.format(msg.user))
     msg.user.send('亲！您好！发送：【我要买橘子】，将有客服为您转接！\n{}'.format(orange_info))
 
-@itchat.msg_register([TEXT])
+@ora.msg_register([TEXT])
 def text_reply(msg):
     orange_replay(msg)
 
-@itchat.msg_register(TEXT,isGroupChat=True)
+@ora.msg_register(TEXT,isGroupChat=True)
 def text_group_chat(msg):
     logger.info(msg['MsgType'])
     logger.info(msg.content)
 
 if __name__=='__main__':
-    itchat.auto_login(True)
-    itchat.run()
+    global ora
+    ora=itchat.new_instance()
+    ora.auto_login(True)
+    ora.run()
 
