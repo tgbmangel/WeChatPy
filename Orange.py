@@ -12,7 +12,7 @@ from orange_log import logger
 import schedule
 import time
 
-
+ora=itchat.new_instance()
 MSG_TURN={}
 orange_info='正宗石门柑橘，自家种的新鲜橘子，一件10斤50元包邮。'
 main_wechat_name='西边有片云'
@@ -146,8 +146,18 @@ def orange_replay(chat_msg):
                 print(order_msg)
                 chat_msg.user.send(f'已收到:{order_msg}')
                 try:
-                    order_name,*order_msgs,order_num,order_beizhu=order_msg.split()
-                    order_address='#'.join(x for x in list(order_msgs))
+                    order_msg_get=re.split('[，。,. ]',order_msg)
+                    order_addre, order_name, order_phone,*_other_msg=order_msg_get
+                    if len(_other_msg)==1:
+                        order_num=_other_msg[0]
+                        order_beizhu='无'
+                    elif len(_other_msg)==2:
+                        order_num, order_beizhu=_other_msg
+                    elif len(_other_msg)>2:
+                        order_num, order_beizhu ,*_= _other_msg
+                    else:
+                        order_num, order_beizhu = '1件', '无'
+                    order_address=f'{order_addre}#{order_phone}'
                     order_time=time.strftime("%Y-%m-%d", time.localtime())
                     print(f'添加数据：name_string={order_name},order_num_string={order_num},address_string={order_address},accept_money_string={order_time},info_string={order_beizhu})')
                     logger.info(f'添加数据：name_string={order_name},order_num_string={order_num},address_string={order_address},accept_money_string={order_time},info_string={order_beizhu}')
@@ -193,8 +203,8 @@ def text_group_chat(msg):
     logger.info(msg.content)
 
 if __name__=='__main__':
-    global ora
-    ora=itchat.new_instance()
+
+
     ora.auto_login(hotReload=True,statusStorageDir='ora.pkl')
     try :
         ora.run()
