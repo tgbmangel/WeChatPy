@@ -147,6 +147,7 @@ def orange_replay(chat_msg):
                 chat_msg.user.send(f'已收到:{order_msg}')
                 try:
                     order_msg_get=re.split('[，。,. \t\s\n]',order_msg)
+                    order_msg_get=[x for x in order_msg_get if not x=='']
                     order_addre, order_name, order_phone,*_other_msg=order_msg_get
                     if len(_other_msg)==1:
                         order_num=_other_msg[0]
